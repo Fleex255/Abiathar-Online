@@ -1,0 +1,58 @@
+﻿/* Hi! I know very little about CSS, so many StackOverflow searches were made. Visit the links in these comments to follow my educational journey! */
+
+@font-face {
+    font-family: OpenSans;
+    src: format('truetype') url('open-sans.ttf');
+}
+
+@font-face {
+    font-family: LucidaConsole;
+    src: format('truetype') url('lucon.ttf');
+} /* Font embedding http://stackoverflow.com/q/11737168/2825369 */
+
+html {
+    height: 100%;
+}
+
+body {
+    font-family: OpenSans, 'Segoe UI', Helvetica, Arial, sans-serif;
+    height: 100%;
+    margin: 0;
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* Background gradient fix http://stackoverflow.com/q/2869212/2825369 */
+}
+
+.center-outer {
+    display: table;
+    position: absolute;
+    height: 95%;
+    width: 95%;
+}
+
+.center-middle {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.center-inner {
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+} /* Vertical centering http://stackoverflow.com/q/396145/2825369 */
+
+.maintitle {
+    font-size: 10em;
+    text-align: center;
+} 
+
+.subtitle {
+    font-family: LucidaConsole, 'Lucida Console', 'Courier New', monospace;
+    font-size: 4em;
+    text-align: right;
+    font-weight: lighter;
+} /* Proportional fonts http://stackoverflow.com/q/16385559/2825369 */
+
+.startpage {
+    background-color: lightgray;
+    background-image: linear-gradient(to bottom, cyan, rgb(240, 240, 240) 10%, rgb(240, 240, 240) 90%, cyan);
+}
