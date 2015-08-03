@@ -22,6 +22,20 @@ body {
     background-attachment: fixed; /* Background gradient fix http://stackoverflow.com/q/2869212/2825369 */
 }
 
+a {
+    text-decoration: none;
+}
+
+a.button {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    padding-left: 2em;
+    padding-right: 2em;
+    color: white;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
 .center-outer {
     display: table;
     position: absolute;
@@ -43,16 +57,30 @@ body {
 .maintitle {
     font-size: 10em;
     text-align: center;
-} 
+} /* Proportional fonts http://stackoverflow.com/q/16385559/2825369 */
 
 .subtitle {
     font-family: LucidaConsole, 'Lucida Console', 'Courier New', monospace;
     font-size: 4em;
     text-align: right;
     font-weight: lighter;
-} /* Proportional fonts http://stackoverflow.com/q/16385559/2825369 */
+    line-height: 0px;
+} /* Whitespace reduction http://stackoverflow.com/q/18508442/2825369 */ 
 
 .startpage {
     background-color: lightgray;
     background-image: linear-gradient(to bottom, cyan, rgb(240, 240, 240) 10%, rgb(240, 240, 240) 90%, cyan);
+}
+
+.infopage {
+    margin-top: 4em;
+    background-color: lightgray;
+    background-image: linear-gradient(to bottom, cyan, rgb(240, 240, 240) 10%, rgb(240, 240, 240));
+}
+
+.startinfo {
+    margin-top: 2em;
+    font-size: 1em;
+    text-align: center;
+    text-justify: auto;
 }
