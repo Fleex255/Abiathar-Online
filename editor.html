@@ -7,7 +7,28 @@
     <script type="text/javascript" src="OpenThar.js"></script>
     <script type="text/javascript" src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="n885406adr3hbmg"></script>
 </head>
-<body>
-
+<body class="startpage">
+    <div class="center-outer" id="setup"><div class="center-middle"><div class="center-inner">
+        <!-- This section will be hidden by scripting after editor resources are selected -->
+        <div class="maintitle" id="title">Let's begin</div>
+        <div class="startinfo">
+            <span id="msg">If your resources are all together in your Dropbox, you can select them all at once. If you have a tricky setup, you'll need to choose the files one at a time.</span>
+            <table style="display:none" id="resTable">
+                <tbody>
+                    <tr><th>Resource</th><th class="filename">Filename</th></tr>
+                    <tr><td>Main maps file</td><td class="monocell" id="resGamemaps"></td></tr>
+                    <tr><td>Map header</td><td class="monocell" id="resMaphead"></td></tr>
+                    <tr><td>Background tileset</td><td class="monocell" id="resBacktils"></td></tr>
+                    <tr><td>Foreground tileset</td><td class="monocell" id="resForetils"></td></tr>
+                </tbody>
+            </table>
+            <br /><br /><br />
+            <a href="start.html" class="button" style="background-color:dimgray">TO HOMEPAGE</a>&nbsp;
+            <a href="javascript:;" onclick="setupHard();" class="button" style="background-color:darkblue" id="goHard">ONE AT ONCE</a>&nbsp;
+            <a href="javascript:;" onclick="setupEasy();" class="button" style="background-color:blue" id="goEasy">ALL TOGETHER</a>
+            <a href="javascript:;" onclick="confirmEasySetup();" class="button" style="background-color:cyan;display:none" id="goFinal">LAUNCH EDITOR</a>
+        </div>
+        
+    </div></div></div>
 </body>
 </html>

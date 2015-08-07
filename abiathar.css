@@ -22,6 +22,29 @@ body {
     background-attachment: fixed; /* Background gradient fix http://stackoverflow.com/q/2869212/2825369 */
 }
 
+table {
+    border: none;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1em;
+} /* Horizontally centering table http://stackoverflow.com/q/301147/2825369 */
+  /* Adding space between cells http://stackoverflow.com/q/16419174/2825369 */
+
+td {
+    text-align: left;
+    vertical-align: text-top;
+}
+
+th {
+    margin-top: 1em;
+    font-weight: bold;
+    text-align: left;
+}
+
+th.filename {
+    text-align: right;
+}
+
 a {
     text-decoration: none;
 }
@@ -57,6 +80,7 @@ a.button {
 .maintitle {
     font-size: 10em;
     text-align: center;
+    margin-top: -0.2em;
 } /* Proportional fonts http://stackoverflow.com/q/16385559/2825369 */
 
 .subtitle {
@@ -73,9 +97,12 @@ a.button {
 }
 
 .infopage {
-    margin-top: 4em;
     background-color: lightgray;
     background-image: linear-gradient(to bottom, cyan, rgb(240, 240, 240) 10%, rgb(240, 240, 240));
+}
+
+.infopad {
+    margin-top: 4em;
 }
 
 .startinfo {
@@ -83,4 +110,10 @@ a.button {
     font-size: 1em;
     text-align: center;
     text-justify: auto;
+}
+
+.monocell {
+    font-family: LucidaConsole, 'Lucida Console', 'Courier New', monospace;
+    text-align: right;
+    padding-left: 0.5em;
 }
