@@ -59,6 +59,10 @@ a.button {
     font-weight: bold;
 }
 
+td.monocell a {
+    margin-left: 1em;
+}
+
 .center-outer {
     display: table;
     position: absolute;
