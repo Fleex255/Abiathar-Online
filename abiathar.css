@@ -121,3 +121,11 @@ td.monocell a {
     text-align: right;
     padding-left: 0.5em;
 }
+
+.editBar {
+    margin-top: 7em;
+    margin-right: 3em;
+    text-align: right;
+    vertical-align: bottom;
+    width: 100%;
+}

@@ -1,8 +1,10 @@
 ﻿// Global (well, persisted while viewing editor.html) variables
 var gamemaps, maphead, backtils, foretils; // Editor resources meta from Dropbox
 var unmaskTls, maskTls; // Image instances
-var xhrGamemaps, xhrMaphead;
+var xhrGamemaps, xhrMaphead; // XMLHttpRequest instances for map resources
 var levels; // Array(100) of levels
+var lastLevelId, levelId; // Level ID if >= 0, or negative tileset ID, or -4 for blank
+var tileCache = new Array(3); // Cached tiles, carved from tilesets
 
 // Functions and event handlers and other exciting stuff
 function setupResponse(title, message) {
@@ -124,9 +126,11 @@ function confirmSetup() {
         xhrMaphead.send(null);
         unmaskTls = new Image;
         unmaskTls.onload = editorReady;
+        unmaskTls.crossOrigin = "Anonymous"; // CORS
         unmaskTls.src = backtils.link;
         maskTls = new Image;
         maskTls.onload = editorReady;
+        maskTls.crossOrigin = "Anonymous";
         maskTls.src = foretils.link;
     }
 }
@@ -254,6 +258,121 @@ function levelResReady(event) {
 function editorReady() {
     // This is called several times as resources get loaded
     if (!(unmaskTls.complete && maskTls.complete && levels !== undefined)) return;
-    setupResponse("Done!", "TODO: an actual editor");
-    
+    document.getElementById("setup").style.display = "none";
+    document.getElementById("editControl").style.display = "block";
+    document.body.className = "infopage"; // Remove bottom gradient
+    levelId = 0;
+    for (var i = 0; i < 3; i++) { // Prepare tile caches
+        tileCache[i] = new Object();
+    }
+    moveToExtantLevel();
+    renderLevel();
+}
+function moveToExtantLevel() {
+    for (var i = levelId; i < 100; i++) { // Try to move to the next level
+        if (levels[i] !== undefined) {
+            levelId = i;
+            return;
+        }
+    }
+    for (var i = levelId; i >= 0; i--) { // Try to move to a previous level
+        if (levels[i] !== undefined) {
+            levelId = i;
+            return;
+        }
+    }
+    levelId = -4; // There are no levels
+}
+function showLevelsList() {
+    // TODO: display list of levels
+}
+function carveTile(plane, id) { // Carve a tile out of the tile sheets
+    var tempCanvas = document.createElement("canvas");
+    tempCanvas.width = 16;
+    tempCanvas.height = 16;
+    var tempCtx = tempCanvas.getContext("2d");
+    var x, y;
+    if (plane == 0) { // Background
+        if (unmaskTls.width == 288) { // Ungrouted
+            y = Math.floor(id / 18) * 16;
+            x = (id % 18) * 16;
+        } else { // Grouted
+            y = 1 + Math.floor(id / 18) * 17;
+            x = (id % 18) * 17;
+        }
+        tempCtx.drawImage(unmaskTls, x, y, 16, 16, 0, 0, 16, 16);
+    } else if (plane == 1 || id < 252) { // Foreground, or infoplane icon (14 rows)
+        var modkeenMask = false;
+        switch (maskTls.width) {
+            case 576: // ModKeen (same dimensions as KG no-grout)
+                modkeenMask = true;
+            case 288: // KeenGraph, no grouting
+                y = Math.floor(id / 18) * 16;
+                x = (id % 18) * 16;
+                break;
+            case 306: // KeenGraph, grouted
+                y = 1 + Math.floor(id / 18) * 17;
+                x = (id % 18) * 17;
+                break;
+        }
+        tempCtx.drawImage(maskTls, x, y, 16, 16, 0, 0, 16, 16);
+        var tileDataWrap = tempCtx.getImageData(0, 0, 16, 16);
+        var tileData = tileDataWrap.data;
+        var pos = 0;
+        if (modkeenMask) {
+            var maskCanvas = document.createElement("canvas");
+            maskCanvas.width = 16;
+            maskCanvas.height = 16;
+            var maskCtx = maskCanvas.getContext("2d");
+            maskCtx.drawImage(maskTls, x + 288, y, 16, 16, 0, 0, 16, 16);
+            var maskData = maskCtx.getImageData(0, 0, 16, 16).data;
+            for (var y = 0; y < 16; y++) {
+                for (var x = 0; x < 16; x++) {
+                    if (maskData[pos] != 0) tileData[pos + 3] = 0; // Clear pixel if mask isn't black
+                    pos += 4;
+                }
+            }
+        } else {
+            for (var y = 0; y < 16; y++) {
+                for (var x = 0; x < 16; x++) {
+                    if (tileData[pos] == 204 && tileData[pos + 1] == 255 && tileData[pos + 2] == 204) tileData[pos + 3] = 0; // Clear the KeenGraph transparency color
+                    pos += 4;
+                }
+            }
+        }
+        tempCtx.putImageData(tileDataWrap, 0, 0);
+    } else { // Hex composite
+        // TODO: hex numbers for links/values
+    }
+    var image = new Image();
+    image.src = tempCanvas.toDataURL("image/png", 1);
+    return image;
+}
+function getCachedTile(plane, id) { // Return a cached tile or carve it out
+    if (tileCache[plane][id]) return tileCache[plane][id];
+    var tile = carveTile(plane, id);
+    tileCache[plane][id] = tile;
+    return tile;
+}
+function renderLevel() {
+    var canvas = document.getElementById("mainView");
+    canvas.style.display = "block";
+    var ctx = canvas.getContext("2d");
+    if (levelId == -4) { // Nothingness (no level, no tileset)
+        canvas.style.display = "none";
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    } else if (levelId >= 0) { // A level
+        var level = levels[levelId];
+        canvas.width = level.width * 16;
+        canvas.height = level.height * 16;
+        for (var plane = 0; plane < 3; plane++) {
+            for (var y = 0; y < level.height; y++) {
+                for (var x = 0; x < level.width; x++) {
+                    var tileId = level.planes[plane][x][y];
+                    if (plane > 0 && tileId == 0) continue; // Never render foreground tile 0
+                    ctx.drawImage(getCachedTile(plane, tileId), x * 16, y * 16);
+                }
+            }
+        }
+    }
 }

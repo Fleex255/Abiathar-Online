@@ -35,9 +35,13 @@
                 <a href="javascript:;" onclick="setupEasy();" class="button" style="background-color:blue" id="goEasy">ALL TOGETHER</a>
             </div>
         </div>
-        <div id="editControl">
-
-        </div>
     </div></div></div>
+    <div id="editControl" style="display:none">
+        <div class="editBar">
+            <a href="javascript:;" onclick="showLevelList();">Switch Level</a>
+        </div>
+        <canvas id="mainView"><!-- The size of the main canvas will be set and updated by script --></canvas>
+        <div id="levelList" style="display:none"><!-- This section will be populated with links to levels by script --></div>
+    </div>
 </body>
 </html>
