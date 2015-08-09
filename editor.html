@@ -9,30 +9,35 @@
 </head>
 <body class="startpage">
     <div class="center-outer" id="setup"><div class="center-middle"><div class="center-inner">
-        <!-- This section will be hidden by scripting after editor resources are selected -->
+        <!-- This section will be hidden by scripting after editor resources are selected and loaded -->
         <div class="maintitle" id="title">Let's begin</div>
         <div class="startinfo">
             <span id="msg">If your resources are all together in your Dropbox, you can select them all at once. If you have a tricky setup, you'll need to choose the files one at a time.</span>
-            <table style="display:none" id="resTable">
-                <tbody>
-                    <tr><th>Resource</th><th class="filename">Filename</th></tr>
-                    <tr><td>Main maps file</td><td class="monocell"><span id="resGamemaps"></span><a href="javascript:;" onclick="pickGamemaps();" id="pickGamemaps">[Pick]</a></td></tr>
-                    <tr><td>Map header</td><td class="monocell"><span id="resMaphead"></span><a href="javascript:;" onclick="pickMaphead();" id="pickMaphead">[Pick]</a></td></tr>
-                    <tr><td>Background tileset</td><td class="monocell"><span id="resBacktils"></span><a href="javascript:;" onclick="pickBacktils();" id="pickBacktils">[Pick]</a></td></tr>
-                    <tr><td>Foreground tileset</td><td class="monocell"><span id="resForetils"></span><a href="javascript:;" onclick="pickForetils();" id="pickForetils">[Pick]</a></td></tr>
-                </tbody>
-            </table>
-            <span id="goFinal" style="display:none">
-                <br /><br />
-                <a href="javascript:;" onclick="confirmSetup();" class="button" style="background-color:cyan">LAUNCH EDITOR</a>
-                <br />
-            </span>
-            <br /><br /><br />
-            <a href="start.html" class="button" style="background-color:dimgray">TO HOMEPAGE</a>&nbsp;
-            <a href="javascript:;" onclick="setupHard();" class="button" style="background-color:darkblue" id="goHard">ONE AT ONCE</a>&nbsp;
-            <a href="javascript:;" onclick="setupEasy();" class="button" style="background-color:blue" id="goEasy">ALL TOGETHER</a>
+            <div id="setupControl">
+                <!-- This section will be hidden after resources are selected -->
+                <table style="display:none" id="resTable">
+                    <tbody>
+                        <tr><th>Resource</th><th class="filename">Filename</th></tr>
+                        <tr><td>Main maps file</td><td class="monocell"><span id="resGamemaps"></span><a href="javascript:;" onclick="pickGamemaps();" id="pickGamemaps">[Pick]</a></td></tr>
+                        <tr><td>Map header</td><td class="monocell"><span id="resMaphead"></span><a href="javascript:;" onclick="pickMaphead();" id="pickMaphead">[Pick]</a></td></tr>
+                        <tr><td>Background tileset</td><td class="monocell"><span id="resBacktils"></span><a href="javascript:;" onclick="pickBacktils();" id="pickBacktils">[Pick]</a></td></tr>
+                        <tr><td>Foreground tileset</td><td class="monocell"><span id="resForetils"></span><a href="javascript:;" onclick="pickForetils();" id="pickForetils">[Pick]</a></td></tr>
+                    </tbody>
+                </table>
+                <span id="goFinal" style="display:none">
+                    <br /><br />
+                    <a href="javascript:;" onclick="confirmSetup();" class="button" style="background-color:cyan">LAUNCH EDITOR</a>
+                    <br />
+                </span>
+                <br /><br /><br />
+                <a href="start.html" class="button" style="background-color:dimgray">TO HOMEPAGE</a>&nbsp;
+                <a href="javascript:;" onclick="setupHard();" class="button" style="background-color:darkblue" id="goHard">ONE AT ONCE</a>&nbsp;
+                <a href="javascript:;" onclick="setupEasy();" class="button" style="background-color:blue" id="goEasy">ALL TOGETHER</a>
+            </div>
         </div>
-        
+        <div id="editControl">
+
+        </div>
     </div></div></div>
 </body>
 </html>
