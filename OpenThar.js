@@ -1,6 +1,6 @@
 ﻿// Global (well, persisted while viewing editor.html) variables
 var gamemaps, maphead, backtils, foretils; // Editor resources meta from Dropbox
-var unmaskTls, maskTls; // Image instances
+var unmaskTls, maskTls, nybbles; // Image instances
 var xhrGamemaps, xhrMaphead; // XMLHttpRequest instances for map resources
 var levels; // Array(100) of levels
 var lastLevelId, levelId; // Level ID if >= 0, or negative tileset ID, or -4 for blank
@@ -132,6 +132,9 @@ function confirmSetup() {
         maskTls.onload = editorReady;
         maskTls.crossOrigin = "Anonymous";
         maskTls.src = foretils.link;
+        nybbles = new Image;
+        nybbles.onload = editorReady;
+        nybbles.src = "nybbles.png";
     }
 }
 function readNumber(arr, offset, byteLen) { // Read a little-endian number from a byte array
@@ -257,10 +260,10 @@ function levelResReady(event) {
 }
 function editorReady() {
     // This is called several times as resources get loaded
-    if (!(unmaskTls.complete && maskTls.complete && levels !== undefined)) return;
+    if (!(unmaskTls.complete && maskTls.complete && nybbles.complete && levels !== undefined)) return;
     document.getElementById("setup").style.display = "none";
     document.getElementById("editControl").style.display = "block";
-    document.body.className = "infopage"; // Remove bottom gradient
+    document.body.className = ""; // Remove bottom gradient
     levelId = 0;
     for (var i = 0; i < 3; i++) { // Prepare tile caches
         tileCache[i] = new Object();
@@ -342,10 +345,13 @@ function carveTile(plane, id) { // Carve a tile out of the tile sheets
         }
         tempCtx.putImageData(tileDataWrap, 0, 0);
     } else { // Hex composite
-        // TODO: hex numbers for links/values
+        for (var i = 0; i < 4; i++) {
+            var nybble = (id >> ((3 - i) * 4)) & 0xF; // Get the i'th digit of the hex value
+            tempCtx.drawImage(nybbles, nybble * 8, 0, 8, 8, (i & 1 > 0) ? 8 : 0, (i > 1) ? 8 : 0, 8, 8);
+        }
     }
     var image = new Image();
-    image.src = tempCanvas.toDataURL("image/png", 1);
+    image.src = tempCanvas.toDataURL();
     return image;
 }
 function getCachedTile(plane, id) { // Return a cached tile or carve it out

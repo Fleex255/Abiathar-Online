@@ -19,6 +19,7 @@ body {
     height: 100%;
     margin: 0;
     background-repeat: no-repeat;
+    background-color: lightgray;
     background-attachment: fixed; /* Background gradient fix http://stackoverflow.com/q/2869212/2825369 */
 }
 
@@ -96,13 +97,15 @@ td.monocell a {
 } /* Whitespace reduction http://stackoverflow.com/q/18508442/2825369 */ 
 
 .startpage {
-    background-color: lightgray;
     background-image: linear-gradient(to bottom, cyan, rgb(240, 240, 240) 10%, rgb(240, 240, 240) 90%, cyan);
 }
 
 .infopage {
-    background-color: lightgray;
     background-image: linear-gradient(to bottom, cyan, rgb(240, 240, 240) 10%, rgb(240, 240, 240));
+}
+
+.editpage {
+
 }
 
 .infopad {
@@ -122,10 +125,27 @@ td.monocell a {
     padding-left: 0.5em;
 }
 
-.editBar {
-    margin-top: 7em;
-    margin-right: 3em;
+.editbar {
     text-align: right;
     vertical-align: bottom;
     width: 100%;
+    background-color: cyan;
+}
+
+.editbarcontent {
+    margin-right: 2em;
+    padding-top: 1em;
+}
+
+.editsplit {
+    height: 2em;
+    background-image: linear-gradient(to bottom, cyan, rgb(240, 240, 240));
+}
+
+.editarea {
+    background-color: rgb(240, 240, 240);
+}
+
+.editareacontent {
+    padding: 1em;
 }
