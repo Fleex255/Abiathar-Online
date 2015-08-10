@@ -37,10 +37,14 @@
         </div>
     </div></div></div>
     <div id="editControl" style="display:none">
-        <div class="editbar"><div class="editbarcontent">
-            <a href="javascript:;" onclick="showLevelList();">Switch Level</a>
-        </div></div>
-        <div class="editsplit"></div>
+        <div class="editbar">
+            <div class="editbarcontent">
+                Currently viewing: <span id="curLevel"></span> |
+                <a href="javascript:;" onclick="showLevelsList();">Switch Level</a>
+            </div>
+            <div class="editsplit"></div>
+        </div>
+        <div class="editbarfloatbuffer"></div>
         <div class="editarea"><div class="editareacontent">
             <canvas id="mainView"><!-- The size of the main canvas will be set and updated by script --></canvas>
             <div id="levelList" style="display:none"><!-- This section will be populated with links to levels by script --></div>

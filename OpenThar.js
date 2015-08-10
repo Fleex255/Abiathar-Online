@@ -263,31 +263,82 @@ function editorReady() {
     if (!(unmaskTls.complete && maskTls.complete && nybbles.complete && levels !== undefined)) return;
     document.getElementById("setup").style.display = "none";
     document.getElementById("editControl").style.display = "block";
-    document.body.className = ""; // Remove bottom gradient
+    document.body.className = ""; // Remove decorative gradients
     levelId = 0;
     for (var i = 0; i < 3; i++) { // Prepare tile caches
         tileCache[i] = new Object();
     }
+    updateLevelsList();
     moveToExtantLevel();
     renderLevel();
+}
+function gotoLevel(id) {
+    levelId = id;
+    var name;
+    if (id >= 0) { // It's a real level
+        lastLevelId = id;
+        name = levels[id].name + " (Level " + id + ")";
+    } else if (id > -4) {
+        switch (-id) {
+            case 1:
+                name = "Background tileset";
+                break;
+            case 2:
+                name = "Foreground tileset";
+                break;
+            case 3:
+                name = "Infoplane tileset";
+                break;
+        }
+    } else {
+        name = "Nothing";
+    }
+    document.getElementById("curLevel").innerText = name;
 }
 function moveToExtantLevel() {
     for (var i = levelId; i < 100; i++) { // Try to move to the next level
         if (levels[i] !== undefined) {
-            levelId = i;
+            gotoLevel(i);
             return;
         }
     }
     for (var i = levelId; i >= 0; i--) { // Try to move to a previous level
         if (levels[i] !== undefined) {
-            levelId = i;
+            gotoLevel(i);
             return;
         }
     }
-    levelId = -4; // There are no levels
+    gotoLevel(-4); // There are no levels
 }
 function showLevelsList() {
-    // TODO: display list of levels
+    document.getElementById("mainView").style.display = "none";
+    document.getElementById("levelList").style.display = "block";
+}
+function updateLevelsList() {
+    var listDiv = document.getElementById("levelList");
+    listDiv.innerHTML = "";
+    var createLinkClickHandler = function(id) {
+        // Closures and loops don't work well together
+        // JavaScript has no block scope, only function scope
+        return function() {
+            listDiv.style.display = "none";
+            gotoLevel(id);
+            renderLevel();
+        }
+    }
+    for (var i = 0; i < 100; i++) {
+        if (levels[i] !== undefined) {
+            var num = document.createElement("span");
+            num.innerText = i.toString() + ": ";
+            listDiv.appendChild(num);
+            var link = document.createElement("a");
+            link.href = "javascript:;";
+            link.onclick = createLinkClickHandler(i);
+            link.innerText = levels[i].name;
+            listDiv.appendChild(link);
+            listDiv.appendChild(document.createElement("br"));
+        }
+    }
 }
 function carveTile(plane, id) { // Carve a tile out of the tile sheets
     var tempCanvas = document.createElement("canvas");

@@ -19,7 +19,7 @@ body {
     height: 100%;
     margin: 0;
     background-repeat: no-repeat;
-    background-color: lightgray;
+    background-color: rgb(240, 240, 240);
     background-attachment: fixed; /* Background gradient fix http://stackoverflow.com/q/2869212/2825369 */
 }
 
@@ -126,13 +126,15 @@ td.monocell a {
 }
 
 .editbar {
-    text-align: right;
     vertical-align: bottom;
     width: 100%;
     background-color: cyan;
-}
+    position: fixed;
+    z-index: 100;
+} /* Sticky bar http://stackoverflow.com/q/1216114/2825369 */
 
 .editbarcontent {
+    margin-left: 2em;
     margin-right: 2em;
     padding-top: 1em;
 }
@@ -140,6 +142,10 @@ td.monocell a {
 .editsplit {
     height: 2em;
     background-image: linear-gradient(to bottom, cyan, rgb(240, 240, 240));
+}
+
+.editbarfloatbuffer {
+    height: 4em;
 }
 
 .editarea {
