@@ -5,7 +5,8 @@ var xhrGamemaps, xhrMaphead; // XMLHttpRequest instances for map resources
 var levels; // Array(100) of levels
 var lastLevelId, levelId; // Level ID if >= 0, or negative tileset ID, or -4 for blank
 var tileCache = new Array(3); // Cached tiles, carved from tilesets
-var planeStates, selTiles;
+var tileCounts = new Array(3); // Number of tiles in each tileset
+var planeStates, selTiles; // Arrays for plane states (active, locked, hidden) and selected tiles
 
 // Functions and event handlers and other exciting stuff
 function setupResponse(title, message) {
@@ -272,6 +273,9 @@ function editorReady() {
         tileCache[i] = new Object();
         setSelTile(i, 0);
     }
+    tileCounts[0] = (unmaskTls.height / ((unmaskTls.width == 288) ? 16 : 17)) * 18; // Detect number of background tiles
+    tileCounts[1] = (maskTls.height / ((maskTls.width == 306) ? 17 : 16)) * 18; // Number of foreground tiles
+    tileCounts[2] = 252; // 14 infoplane rows should be enough for anybody
     updateLevelsList();
     moveToExtantLevel();
     renderLevel();
@@ -335,7 +339,6 @@ function updateLevelsList() {
         // Closures and loops don't work well together
         // JavaScript has no block scope, only function scope
         return function() {
-            listDiv.style.display = "none";
             gotoLevel(id);
             renderLevel();
         }
@@ -426,6 +429,7 @@ function getCachedTile(plane, id) { // Return a cached tile or carve it out
     return tile;
 }
 function renderLevel() {
+    document.getElementById("levelList").style.display = "none";
     var canvas = document.getElementById("mainView");
     canvas.style.display = "block";
     var ctx = canvas.getContext("2d");
@@ -447,7 +451,13 @@ function renderLevel() {
             }
         }
     } else { // A tileset
-        // TODO: render tilesets
+        var planeId = (-levelId) - 1;
+        canvas.width = 18 * 16;
+        canvas.height = (tileCounts[planeId] / 18) * 16;
+        for (var i = 0; i < tileCounts[planeId]; i++) {
+            if (planeId > 0 && i == 0) continue; // Fore tile 0 is always blank
+            ctx.drawImage(getCachedTile(planeId, i), (i % 18) * 16, Math.floor(i / 18) * 16);
+        }
     }
 }
 function setPlaneState(plane, state) {
