@@ -3,7 +3,7 @@ var gamemaps, maphead, backtils, foretils; // Editor resources meta from Dropbox
 var unmaskTls, maskTls, nybbles; // Image instances
 var xhrGamemaps, xhrMaphead; // XMLHttpRequest instances for map resources
 var levels; // Array(100) of levels
-var lastLevelId, levelId; // Level ID if >= 0, or negative tileset ID, or -4 for blank
+var lastLevelId, lastTileset, levelId; // Level ID if >= 0, or negative tileset ID, or -4 for blank
 var tileCache = new Array(3); // Cached tiles, carved from tilesets
 var tileCounts = new Array(3); // Number of tiles in each tileset
 var planeStates, selTiles; // Arrays for plane states (active, locked, hidden) and selected tiles
@@ -267,6 +267,7 @@ function editorReady() {
     document.getElementById("editControl").style.display = "block";
     document.body.className = ""; // Remove decorative gradients
     levelId = 0;
+    lastTileset = -1;
     selTiles = [0, 0, 0];
     planeStates = [0, 0, 0];
     for (var i = 0; i < 3; i++) { // Prepare tile caches
@@ -276,6 +277,7 @@ function editorReady() {
     tileCounts[0] = (unmaskTls.height / ((unmaskTls.width == 288) ? 16 : 17)) * 18; // Detect number of background tiles
     tileCounts[1] = (maskTls.height / ((maskTls.width == 306) ? 17 : 16)) * 18; // Number of foreground tiles
     tileCounts[2] = 252; // 14 infoplane rows should be enough for anybody
+    document.addEventListener("keydown", keyHandler, true);
     updateLevelsList();
     moveToExtantLevel();
     renderLevel();
@@ -287,6 +289,7 @@ function gotoLevel(id) {
         lastLevelId = id;
         name = levels[id].name + " (Level " + id + ")";
     } else if (id > -4) {
+        lastTileset = id;
         switch (-id) {
             case 1:
                 name = "Background tileset";
@@ -461,11 +464,77 @@ function renderLevel() {
     }
 }
 function setPlaneState(plane, state) {
+    var oldState = planeStates[plane];
     planeStates[plane] = state;
     document.getElementById("planeState" + plane).innerText = ["Editable", "View-only", "Hidden"][state];
-    renderLevel();
+    if ((oldState == 2) != (state == 2)) renderLevel(); // Only re-render if the hidden-ness changed
 }
 function setSelTile(plane, id) {
     selTiles[plane] = id;
     document.getElementById("selTile" + plane).src = getCachedTile(plane, id).src;
+}
+function keyHandler(event) {
+    var handled = true;
+    var togglePlaneState = function(plane, fullHide) {
+        if (levelId < 0 && levelId != -4) { // Goto a tileset if using a tileset
+            gotoLevelRerender(-(plane + 1));
+            return;
+        }
+        if (fullHide) {
+            setPlaneState(plane, (planeStates[plane] == 2) ? 0 : 2);
+        } else {
+            setPlaneState(plane, (planeStates[plane] == 0) ? 1 : 0);
+        }
+    }
+    switch (event.keyCode) {
+        case 49: // 1
+            togglePlaneState(0, false); break;
+        case 50: // 2
+            togglePlaneState(1, false); break;
+        case 51: // 3
+            togglePlaneState(2, false); break;
+        case 52: // 4
+            togglePlaneState(0, true); break;
+        case 53: // 5
+            togglePlaneState(1, true); break;
+        case 54: // 6
+            togglePlaneState(2, true); break;
+        case 55: // 7
+            gotoLevelRerender(-1); break;
+        case 56: // 8
+            gotoLevelRerender(-2); break;
+        case 57: // 9
+            gotoLevelRerender(-3); break;
+        case 32: // Space
+            if (levelId < 0) {
+                gotoRealLevel();
+            } else {
+                gotoLevel(lastTileset);
+                renderLevel();
+            }
+            break;
+        case 27: // Esc
+            gotoRealLevel(); break;
+        case 192: // ~
+            showLevelsList(); break;
+        case 33: // PageUp
+            for (var i = levelId - 1; i >= 0; i--) {
+                if (levels[i] !== undefined) {
+                    gotoLevelRerender(i);
+                    break;
+                }
+            }
+            break;
+        case 34: // PageDown
+            for (var i = levelId + 1; i < 100; i++) {
+                if (levels[i] !== undefined) {
+                    gotoLevelRerender(i);
+                    break;
+                }
+            }
+            break;
+        default:
+            handled = false;
+    }
+    if (handled) event.preventDefault();
 }
