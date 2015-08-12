@@ -5,6 +5,7 @@ var xhrGamemaps, xhrMaphead; // XMLHttpRequest instances for map resources
 var levels; // Array(100) of levels
 var lastLevelId, levelId; // Level ID if >= 0, or negative tileset ID, or -4 for blank
 var tileCache = new Array(3); // Cached tiles, carved from tilesets
+var planeStates, selTiles;
 
 // Functions and event handlers and other exciting stuff
 function setupResponse(title, message) {
@@ -265,8 +266,11 @@ function editorReady() {
     document.getElementById("editControl").style.display = "block";
     document.body.className = ""; // Remove decorative gradients
     levelId = 0;
+    selTiles = [0, 0, 0];
+    planeStates = [0, 0, 0];
     for (var i = 0; i < 3; i++) { // Prepare tile caches
         tileCache[i] = new Object();
+        setSelTile(i, 0);
     }
     updateLevelsList();
     moveToExtantLevel();
@@ -294,6 +298,11 @@ function gotoLevel(id) {
         name = "Nothing";
     }
     document.getElementById("curLevel").innerText = name;
+    document.getElementById("backToLevel").style.display = (id >= 0 || id == -4) ? "none" : "inline";
+}
+function gotoLevelRerender(id) {
+    gotoLevel(id);
+    renderLevel();
 }
 function moveToExtantLevel() {
     for (var i = levelId; i < 100; i++) { // Try to move to the next level
@@ -309,6 +318,11 @@ function moveToExtantLevel() {
         }
     }
     gotoLevel(-4); // There are no levels
+}
+function gotoRealLevel() {
+    levelId = lastLevelId;
+    moveToExtantLevel();
+    renderLevel();
 }
 function showLevelsList() {
     document.getElementById("mainView").style.display = "none";
@@ -423,6 +437,7 @@ function renderLevel() {
         canvas.width = level.width * 16;
         canvas.height = level.height * 16;
         for (var plane = 0; plane < 3; plane++) {
+            if (planeStates[plane] == 2) continue; // Plane is hidden
             for (var y = 0; y < level.height; y++) {
                 for (var x = 0; x < level.width; x++) {
                     var tileId = level.planes[plane][x][y];
@@ -431,5 +446,16 @@ function renderLevel() {
                 }
             }
         }
+    } else { // A tileset
+        // TODO: render tilesets
     }
+}
+function setPlaneState(plane, state) {
+    planeStates[plane] = state;
+    document.getElementById("planeState" + plane).innerText = ["Editable", "View-only", "Hidden"][state];
+    renderLevel();
+}
+function setSelTile(plane, id) {
+    selTiles[plane] = id;
+    document.getElementById("selTile" + plane).src = getCachedTile(plane, id).src;
 }

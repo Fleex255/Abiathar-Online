@@ -145,7 +145,7 @@ td.monocell a {
 }
 
 .editbarfloatbuffer {
-    height: 4em;
+    height: 10em;
 }
 
 .editarea {
@@ -154,4 +154,24 @@ td.monocell a {
 
 .editareacontent {
     padding: 1em;
+}
+
+.edithud {
+    display: inline-block;
+}
+
+.planectl {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 0.5em;
+}
+
+.planeinfo {
+    display: inline-block;
+    margin-right: 2em;
+} /* Inline block http://stackoverflow.com/q/8969381/2825369 */
+
+.seltileimage {
+    background-color: rgb(220, 220, 220);
+    image-rendering: pixelated;
 }

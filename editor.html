@@ -39,8 +39,41 @@
     <div id="editControl" style="display:none">
         <div class="editbar">
             <div class="editbarcontent">
-                Currently viewing: <span id="curLevel"></span> |
-                <a href="javascript:;" onclick="showLevelsList();">Switch Level</a>
+                <div class="planeinfo">
+                    <a href="javascript:;" onclick="gotoLevelRerender(-1);">Background</a><br />
+                    <span id="planeState0">Editable</span><br />
+                    <img id="selTile0" width="64" height="64" class="seltileimage" />
+                    <div class="planectl">
+                        <a href="javascript:;" onclick="setPlaneState(0, 0);">Edit</a><br />
+                        <a href="javascript:;" onclick="setPlaneState(0, 1);">View</a><br />
+                        <a href="javascript:;" onclick="setPlaneState(0, 2);">Hide</a>
+                    </div>
+                </div>
+                <div class="planeinfo">
+                    <a href="javascript:;" onclick="gotoLevelRerender(-2);">Foreground</a><br />
+                    <span id="planeState1">Editable</span><br />
+                    <img id="selTile1" width="64" height="64" class="seltileimage" />
+                    <div class="planectl">
+                        <a href="javascript:;" onclick="setPlaneState(1, 0);">Edit</a><br />
+                        <a href="javascript:;" onclick="setPlaneState(1, 1);">View</a><br />
+                        <a href="javascript:;" onclick="setPlaneState(1, 2);">Hide</a>
+                    </div>
+                </div>
+                <div class="planeinfo">
+                    <a href="javascript:;" onclick="gotoLevelRerender(-3);">Infoplane</a><br />
+                    <span id="planeState2">Editable</span><br />
+                    <img id="selTile2" width="64" height="64" class="seltileimage" />
+                    <div class="planectl">
+                        <a href="javascript:;" onclick="setPlaneState(2, 0);">Edit</a><br />
+                        <a href="javascript:;" onclick="setPlaneState(2, 1);">View</a><br />
+                        <a href="javascript:;" onclick="setPlaneState(2, 2);">Hide</a>
+                    </div>
+                </div>
+                <div class="edithud">
+                    <span id="backToLevel" style="display:none"><a href="javascript:;" onclick="gotoRealLevel();">Back to level</a><br /></span>
+                    Currently viewing: <span id="curLevel"></span> |
+                    <a href="javascript:;" onclick="showLevelsList();">Switch Level</a>
+                </div>
             </div>
             <div class="editsplit"></div>
         </div>
