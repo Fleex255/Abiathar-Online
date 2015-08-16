@@ -7,6 +7,7 @@ var lastLevelId, lastTileset, levelId; // Level ID if >= 0, or negative tileset 
 var tileCache = new Array(3); // Cached tiles, carved from tilesets
 var tileCounts = new Array(3); // Number of tiles in each tileset
 var planeStates, selTiles; // Arrays for plane states (active, locked, hidden) and selected tiles
+var canvas; // The main canvas, cached as a variable to minimize DOM queries
 
 // Functions and event handlers and other exciting stuff
 function setupResponse(title, message) {
@@ -278,6 +279,10 @@ function editorReady() {
     tileCounts[1] = (maskTls.height / ((maskTls.width == 306) ? 17 : 16)) * 18; // Number of foreground tiles
     tileCounts[2] = 252; // 14 infoplane rows should be enough for anybody
     document.addEventListener("keydown", keyHandler, true);
+    canvas = document.getElementById("mainView");
+    canvas.addEventListener("mousemove", canvasMovementHandler, true);
+    canvas.addEventListener("mouseup", canvasMouseUpHandler, true);
+    canvas.addEventListener("contextmenu", function(event) { event.preventDefault(); }, true); // Stop the right-click menu
     updateLevelsList();
     moveToExtantLevel();
     renderLevel();
@@ -332,7 +337,7 @@ function gotoRealLevel() {
     renderLevel();
 }
 function showLevelsList() {
-    document.getElementById("mainView").style.display = "none";
+    canvas.style.display = "none";
     document.getElementById("levelList").style.display = "block";
 }
 function updateLevelsList() {
@@ -433,7 +438,6 @@ function getCachedTile(plane, id) { // Return a cached tile or carve it out
 }
 function renderLevel() {
     document.getElementById("levelList").style.display = "none";
-    var canvas = document.getElementById("mainView");
     canvas.style.display = "block";
     var ctx = canvas.getContext("2d");
     if (levelId == -4) { // Nothingness (no level, no tileset)
@@ -463,14 +467,26 @@ function renderLevel() {
         }
     }
 }
+function updateTileImageInLevel(x, y) {
+    var ctx = canvas.getContext("2d");
+    ctx.clearRect(x * 16, y * 16, 16, 16); // In case background is hidden
+    for (var i = 0; i < 3; i++) {
+        if (planeStates[i] == 2) continue;
+        var tileId = levels[levelId].planes[i][x][y];
+        if (i > 0 && tileId == 0) continue;
+        ctx.drawImage(getCachedTile(i, tileId), x * 16, y * 16);
+    }
+}
 function setPlaneState(plane, state) {
     var oldState = planeStates[plane];
     planeStates[plane] = state;
-    document.getElementById("planeState" + plane).innerText = ["Editable", "View-only", "Hidden"][state];
+    document.getElementById("planeState" + plane).innerText = ["Editable", "Visible", "Hidden"][state];
     if ((oldState == 2) != (state == 2)) renderLevel(); // Only re-render if the hidden-ness changed
 }
 function setSelTile(plane, id) {
     selTiles[plane] = id;
+    var hexTileId = id.toString(16);
+    document.getElementById("tileId" + plane).innerText = ("0000" + hexTileId).substr(hexTileId.length, 4).toUpperCase();
     document.getElementById("selTile" + plane).src = getCachedTile(plane, id).src;
 }
 function keyHandler(event) {
@@ -537,4 +553,45 @@ function keyHandler(event) {
             handled = false;
     }
     if (handled) event.preventDefault();
+}
+function mouseHappened(clientX, clientY, button) {
+    // Button: 0 for none/other, 1 for left, 2 for right
+    var x = Math.floor((clientX + document.body.scrollLeft + document.documentElement.scrollLeft - Math.floor(canvas.offsetLeft)) / 16);
+    var y = Math.floor((clientY + document.body.scrollTop + document.documentElement.scrollTop - Math.floor(canvas.offsetTop) + 1) / 16);
+    if (levelId >= 0) {
+        if (button == 1) {
+            for (var i = 0; i < 3; i++) {
+                if (planeStates[i] == 0) levels[levelId].planes[i][x][y] = selTiles[i];
+            }
+            updateTileImageInLevel(x, y);
+        } else if (button == 2) {
+            for (var i = 0; i < 3; i++) {
+                if (planeStates[i] == 0) setSelTile(i, levels[levelId].planes[i][x][y]);
+            }
+        }
+    }
+}
+function canvasMovementHandler(event) {
+    var buttonId;
+    if ((event.buttons & 1) > 0) {
+        buttonId = 1;
+    } else if ((event.buttons & 2) > 0) {
+        buttonId = 2;
+    } else {
+        buttonId = 0;
+    }
+    mouseHappened(event.clientX, event.clientY, buttonId);
+}
+function canvasMouseUpHandler(event) {
+    // Mouse up events seem to have different values for "buttons" than movement events
+    // Isn't JavaScript great?
+    var buttonId;
+    if (event.button == 0) {
+        buttonId = 1;
+    } else if (event.button == 2) {
+        buttonId = 2;
+    } else {
+        return;
+    }
+    mouseHappened(event.clientX, event.clientY, buttonId);
 }

@@ -175,3 +175,17 @@ td.monocell a {
     background-color: rgb(220, 220, 220);
     image-rendering: pixelated;
 }
+
+.seltileid {
+    font-family: LucidaConsole, 'Lucida Console', 'Courier New', monospace;
+    float: right;
+    position: absolute;
+    right: 0;
+    bottom: 0.05em;
+} /* Align at bottom http://stackoverflow.com/q/585945/2825369 */
+
+.planeinforow {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+}
