@@ -6,6 +6,9 @@ Hi! I'm Fleexy, creator of the [Abiathar](http://www.pckf.com/viewtopic.php?t=30
 
 I've never written any JavaScript at all, so you get to watch me fumble around with this whole web scripting thing. I plan on using Visual Studio for the actual coding and Google Chrome for the use. (Although Internet Explorer has way better debugging tools. Wait, come back!) I've also never made serious use of source control before, so... hooray! Learning!
 
+## Echo server
+The Dropbox Saver API/control/thing doesn't currently support data URLs (it needs a real URL from which to fetch the data), which makes saving very difficult without a dynamic file server. Therefore, I have set up a public echo server (Base64 to binary response converter) at `abiathar.site40.net` in... PHP. Gross, yes I know, but I didn't want to spend any money. Thanks to 000Webhost for making saving possible, I guess.
+
 ## License
 I haven't chosen a license yet, but I can definitely tell you it won't be GPL. (But that's a rant for another time.) I'm seriously considering writing my own. Until then, this is just **Copyright (c) Ben Nordick 2015**.
 
