@@ -569,6 +569,11 @@ function mouseHappened(clientX, clientY, button) {
                 if (planeStates[i] == 0) setSelTile(i, levels[levelId].planes[i][x][y]);
             }
         }
+    } else if (levelId > -4) {
+        if (button > 0) {
+            var tileId = (y * 18) + x;
+            setSelTile(-(levelId + 1), tileId);
+        }
     }
 }
 function canvasMovementHandler(event) {
