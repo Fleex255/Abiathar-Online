@@ -261,16 +261,25 @@ function levelResReady(event) {
     }
     editorReady();
 }
+function revertSaveButton(msg) {
+    document.getElementById("saveButton").style.display = "inline";
+    document.getElementById("savingButton").style.display = "none";
+    document.getElementById("saveProgress").innerText = msg;
+}
 function saveLevels() {
     var aHead = new Uint8Array(402);
     var aMaps = new Array();
-    var writeString = function(arr, text, offset, endWithNull) {
+    var writeString = function(arr, text, offset, padLen) {
         for (var i = 0; i < text.length; i++) {
             arr[offset + i] = text.charCodeAt(i);
         }
-        if (endWithNull) arr[offset + text.length] = 0;
+        if (text.length < padLen) {
+            for (var i = 0; i < (padLen - text.length) ; i++) {
+                arr[offset + text.length + i] = 0;
+            }
+        }
     }
-    writeString(aMaps, "OpenThar", 0, false);
+    writeString(aMaps, "OpenThar", 0, 8);
     var mapsPos = 8;
     writeNumber(aHead, 0, 0xABCD, 2);
     for (var i = 0; i < 100; i++) {
@@ -340,21 +349,25 @@ function saveLevels() {
         }
         writeNumber(aMaps, mapsPos + 18, level.width, 2);
         writeNumber(aMaps, mapsPos + 20, level.height, 2);
-        writeString(aMaps, level.name, mapsPos + 22, true);
-        writeString(aMaps, "Thar", mapsPos + 38, false);
+        writeString(aMaps, level.name, mapsPos + 22, 16);
+        writeString(aMaps, "Thar", mapsPos + 38, 4);
+        writeString(aMaps, "", mapsPos + 42, 8); // A bit of extra padding in case the Base64 round-trip causes problems
         mapsPos += 42;
     }
     document.getElementById("saveButton").style.display = "none";
     document.getElementById("savingButton").style.display = "inline";
-    document.getElementById("saveProgress").innerText = "Waiting for Dropbox dialog..."
-    var revertButton = function(msg) {
-        document.getElementById("saveButton").style.display = "inline";
-        document.getElementById("savingButton").style.display = "none";
-        document.getElementById("saveProgress").innerText = msg;
-    }
-    // At the moment, this is broken for all but very small GAMEMAPS files (URL length limits) - some crazy AJAX solution will have to be rigged up
-    var gamemapsUrl = "http://abiathar.site40.net/echo.php?data=" + btoa(String.fromCharCode.apply(null, aMaps));
-    var mapheadUrl = "http://abiathar.site40.net/echo.php?data=" + btoa(String.fromCharCode.apply(null, aHead));
+    document.getElementById("saveProgress").innerText = "Uploading..."
+    var query = "data=" + encodeURIComponent(btoa(String.fromCharCode.apply(null, aMaps))); // For the equal signs at the end
+    var xhr = new XMLHttpRequest();
+    var fileId = Math.floor((1 + Math.random()) * 0x10000).toString() + Date.now().toString(); // Unique enough (PRNG + current time)
+    xhr.open("POST", "http://abiathar.site40.net/load.php?id=" + fileId);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.send(query);
+    // Currently, xhr.readyState is always 1 for some reason, even after the data is successfully sent.
+    // Therefore, all the handlers I've tried can't see whether it's actually done.
+    // Let's hope it gets uploaded before Dropbox tries to fetch it. Reliability!
+    var gamemapsUrl = "http://abiathar.site40.net/finalize.php?id=" + fileId;
+    var mapheadUrl = "http://abiathar.site40.net/echo.php?data=" + btoa(String.fromCharCode.apply(null, aHead)); // MAPHEADs are short enough for the echo server
     var saveOptions = {
         files: [
             { "url": gamemapsUrl, "filename": gamemaps.name },
@@ -362,15 +375,16 @@ function saveLevels() {
         ],
         success: function() {
             var datetime = new Date();
-            revertButton("Saved at " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds());
+            revertSaveButton("Saved at " + datetime.getHours() + ":" + (datetime.getMinutes() < 10 ? ("0" + datetime.getMinutes()) : datetime.getMinutes()));
         },
         cancel: function() {
-            revertButton("Saving canceled");
+            revertSaveButton("Saving canceled");
         },
         error: function(msg) {
-            revertButton("Saving failed: " + msg);
+            revertSaveButton("Saving failed!");
         }
     }
+    document.getElementById("saveProgress").innerText = "Waiting for Dropbox...";
     Dropbox.save(saveOptions);
 }
 function editorReady() {
