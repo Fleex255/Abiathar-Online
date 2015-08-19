@@ -81,6 +81,11 @@
                     Currently viewing: <span id="curLevel"></span> |
                     <a href="javascript:;" onclick="showLevelsList();">Switch Level</a>
                 </div>
+                <div style="float:right;margin-top:1em">
+                    <a href="javascript:;" class="button" style="background-color:blue" onclick="saveLevels();" id="saveButton">SAVE</a>
+                    <a href="javascript:;" class="button" style="background-color:gray;display:none" id="savingButton">SAVING</a><br /><br />
+                    <div id="saveProgress" style="text-align:right"></div>
+                </div>
             </div>
             <div class="editsplit"></div>
         </div>

@@ -261,6 +261,118 @@ function levelResReady(event) {
     }
     editorReady();
 }
+function saveLevels() {
+    var aHead = new Uint8Array(402);
+    var aMaps = new Array();
+    var writeString = function(arr, text, offset, endWithNull) {
+        for (var i = 0; i < text.length; i++) {
+            arr[offset + i] = text.charCodeAt(i);
+        }
+        if (endWithNull) arr[offset + text.length] = 0;
+    }
+    writeString(aMaps, "OpenThar", 0, false);
+    var mapsPos = 8;
+    writeNumber(aHead, 0, 0xABCD, 2);
+    for (var i = 0; i < 100; i++) {
+        var level = levels[i];
+        if (level === undefined) continue;
+        var planeLoc = new Array(3);
+        var planeLen = new Array(3);
+        for (var plane = 0; plane < 3; plane++) {
+            var uncomp = new Uint16Array(level.width * level.height);
+            var ucPos = 0;
+            for (var y = 0; y < level.height; y++) { // Write the raw tile data
+                for (var x = 0; x < level.width; x++) {
+                    uncomp[ucPos] = level.planes[plane][x][y];
+                    ucPos++;
+                }
+            }
+            var rlewComp = new Array();
+            rlewComp[0] = uncomp.length * 2;
+            var rlPos = 1;
+            var curWord, runLen;
+            ucPos = 0;
+            while (ucPos < uncomp.length) { // RLEW compression
+                curWord = uncomp[ucPos];
+                runLen = 1;
+                ucPos++;
+                while (ucPos < uncomp.length && uncomp[ucPos] == curWord) { // Get a run
+                    ucPos++;
+                    runLen++;
+                }
+                if (runLen > 2 || curWord == 0xABCD) { // Worth compressing
+                    rlewComp[rlPos] = 0xABCD;
+                    rlewComp[rlPos + 1] = runLen;
+                    rlewComp[rlPos + 2] = curWord;
+                    rlPos += 3;
+                } else {
+                    ucPos -= (runLen - 1); // Go back the extra value
+                    rlewComp[rlPos] = curWord;
+                    rlPos++;
+                }
+            }
+            rlPos = 0;
+            writeNumber(aMaps, mapsPos, rlewComp.length * 2, 2);
+            var origMapsPos = mapsPos;
+            mapsPos += 2;
+            while (rlPos < rlewComp.length) { // Copy to GAMEMAPS with trivial Carmack compression
+                var word = rlewComp[rlPos];
+                var hiByte = (word >> 8);
+                if (hiByte == 0xA7 || hiByte == 0xA8) {
+                    aMaps[mapsPos] = 0;
+                    aMaps[mapsPos + 1] = hiByte;
+                    aMaps[mapsPos + 2] = (word & 0xFF);
+                    mapsPos += 3;
+                } else {
+                    aMaps[mapsPos] = (word & 0xFF);
+                    aMaps[mapsPos + 1] = hiByte;
+                    mapsPos += 2;
+                }
+                rlPos++;
+            }
+            planeLen[plane] = mapsPos - origMapsPos;
+            planeLoc[plane] = origMapsPos;
+        }
+        writeNumber(aHead, 2 + (i * 4), mapsPos, 4); // Write the main header pointer
+        for (var j = 0; j < 3; j++) {
+            writeNumber(aMaps, mapsPos + (j * 4), planeLoc[j], 4);
+            writeNumber(aMaps, mapsPos + 12 + (j * 2), planeLen[j], 2);
+        }
+        writeNumber(aMaps, mapsPos + 18, level.width, 2);
+        writeNumber(aMaps, mapsPos + 20, level.height, 2);
+        writeString(aMaps, level.name, mapsPos + 22, true);
+        writeString(aMaps, "Thar", mapsPos + 38, false);
+        mapsPos += 42;
+    }
+    document.getElementById("saveButton").style.display = "none";
+    document.getElementById("savingButton").style.display = "inline";
+    document.getElementById("saveProgress").innerText = "Waiting for Dropbox dialog..."
+    var revertButton = function(msg) {
+        document.getElementById("saveButton").style.display = "inline";
+        document.getElementById("savingButton").style.display = "none";
+        document.getElementById("saveProgress").innerText = msg;
+    }
+    // At the moment, this is broken for all but very small GAMEMAPS files (URL length limits) - some crazy AJAX solution will have to be rigged up
+    var gamemapsUrl = "http://abiathar.site40.net/echo.php?data=" + btoa(String.fromCharCode.apply(null, aMaps));
+    var mapheadUrl = "http://abiathar.site40.net/echo.php?data=" + btoa(String.fromCharCode.apply(null, aHead));
+    var saveOptions = {
+        files: [
+            { "url": gamemapsUrl, "filename": gamemaps.name },
+            { "url": mapheadUrl, "filename": maphead.name }
+        ],
+        success: function() {
+            var datetime = new Date();
+            revertButton("Saved at " + datetime.getHours() + ":" + datetime.getMinutes() + ":" + datetime.getSeconds());
+        },
+        cancel: function() {
+            revertButton("Saving canceled");
+        },
+        error: function(msg) {
+            revertButton("Saving failed: " + msg);
+        }
+    }
+    Dropbox.save(saveOptions);
+}
 function editorReady() {
     // This is called several times as resources get loaded
     if (!(unmaskTls.complete && maskTls.complete && nybbles.complete && levels !== undefined)) return;
