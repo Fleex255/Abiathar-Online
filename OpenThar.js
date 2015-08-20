@@ -361,31 +361,32 @@ function saveLevels() {
     var xhr = new XMLHttpRequest();
     var fileId = Math.floor((1 + Math.random()) * 0x10000).toString() + Date.now().toString(); // Unique enough (PRNG + current time)
     xhr.open("POST", "http://abiathar.site40.net/load.php?id=" + fileId);
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xhr.send(query);
-    // Currently, xhr.readyState is always 1 for some reason, even after the data is successfully sent.
-    // Therefore, all the handlers I've tried can't see whether it's actually done.
-    // Let's hope it gets uploaded before Dropbox tries to fetch it. Reliability!
-    var gamemapsUrl = "http://abiathar.site40.net/finalize.php?id=" + fileId;
-    var mapheadUrl = "http://abiathar.site40.net/echo.php?data=" + btoa(String.fromCharCode.apply(null, aHead)); // MAPHEADs are short enough for the echo server
-    var saveOptions = {
-        files: [
-            { "url": gamemapsUrl, "filename": gamemaps.name },
-            { "url": mapheadUrl, "filename": maphead.name }
-        ],
-        success: function() {
-            var datetime = new Date();
-            revertSaveButton("Saved at " + datetime.getHours() + ":" + (datetime.getMinutes() < 10 ? ("0" + datetime.getMinutes()) : datetime.getMinutes()));
-        },
-        cancel: function() {
-            revertSaveButton("Saving canceled");
-        },
-        error: function(msg) {
-            revertSaveButton("Saving failed!");
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            var gamemapsUrl = "http://abiathar.site40.net/finalize.php?id=" + fileId;
+            var mapheadUrl = "http://abiathar.site40.net/echo.php?data=" + btoa(String.fromCharCode.apply(null, aHead)); // MAPHEADs are short enough for the echo server
+            var saveOptions = {
+                files: [
+                    { "url": gamemapsUrl, "filename": gamemaps.name },
+                    { "url": mapheadUrl, "filename": maphead.name }
+                ],
+                success: function() {
+                    var datetime = new Date();
+                    revertSaveButton("Saved at " + datetime.getHours() + ":" + (datetime.getMinutes() < 10 ? ("0" + datetime.getMinutes()) : datetime.getMinutes()));
+                },
+                cancel: function() {
+                    revertSaveButton("Saving canceled");
+                },
+                error: function(msg) {
+                    revertSaveButton("Saving failed!");
+                }
+            }
+            document.getElementById("saveProgress").innerText = "Waiting for Dropbox...";
+            Dropbox.save(saveOptions);
         }
     }
-    document.getElementById("saveProgress").innerText = "Waiting for Dropbox...";
-    Dropbox.save(saveOptions);
+    xhr.send(query);
 }
 function editorReady() {
     // This is called several times as resources get loaded

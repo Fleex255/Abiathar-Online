@@ -5,8 +5,13 @@
 	 * will be purged from disk. echo.php would be used
 	 * instead, but the URL gets way too long. */
 	 
-	 // Calm down the Same Origin Policy
+	 // Calm down the Same Origin Policy and provide headers
+	 header("Content-Type: text/plain");
+	 header("Content-Length: 0");
 	 header("Access-Control-Allow-Origin: *");
+	 header("Expires: 0");
+	 header("Pragma: public");
+	 header("Connection: close");
 	 
 	 // Decode the data, from POST information
 	 $binaryVal = base64_decode($_POST["data"], true);
