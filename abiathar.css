@@ -1,0 +1,191 @@
+﻿/* Hi! I know very little about CSS, so many StackOverflow searches were made. Visit the links in these comments to follow my educational journey! */
+
+@font-face {
+    font-family: OpenSans;
+    src: format('truetype') url('open-sans.ttf');
+}
+
+@font-face {
+    font-family: LucidaConsole;
+    src: format('truetype') url('lucon.ttf');
+} /* Font embedding http://stackoverflow.com/q/11737168/2825369 */
+
+html {
+    height: 100%;
+}
+
+body {
+    font-family: OpenSans, 'Segoe UI', Helvetica, Arial, sans-serif;
+    height: 100%;
+    margin: 0;
+    background-repeat: no-repeat;
+    background-color: rgb(240, 240, 240);
+    background-attachment: fixed; /* Background gradient fix http://stackoverflow.com/q/2869212/2825369 */
+}
+
+table {
+    border: none;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1em;
+} /* Horizontally centering table http://stackoverflow.com/q/301147/2825369 */
+  /* Adding space between cells http://stackoverflow.com/q/16419174/2825369 */
+
+td {
+    text-align: left;
+    vertical-align: text-top;
+}
+
+th {
+    margin-top: 1em;
+    font-weight: bold;
+    text-align: left;
+}
+
+th.filename {
+    text-align: right;
+}
+
+a {
+    text-decoration: none;
+}
+
+a.button {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    padding-left: 2em;
+    padding-right: 2em;
+    color: white;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+td.monocell a {
+    margin-left: 1em;
+}
+
+.center-outer {
+    display: table;
+    position: absolute;
+    height: 95%;
+    width: 95%;
+}
+
+.center-middle {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.center-inner {
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+} /* Vertical centering http://stackoverflow.com/q/396145/2825369 */
+
+.maintitle {
+    font-size: 10em;
+    text-align: center;
+    margin-top: -0.2em;
+} /* Proportional fonts http://stackoverflow.com/q/16385559/2825369 */
+
+.subtitle {
+    font-family: LucidaConsole, 'Lucida Console', 'Courier New', monospace;
+    font-size: 4em;
+    text-align: right;
+    font-weight: lighter;
+    line-height: 0px;
+} /* Whitespace reduction http://stackoverflow.com/q/18508442/2825369 */ 
+
+.startpage {
+    background-image: linear-gradient(to bottom, cyan, rgb(240, 240, 240) 10%, rgb(240, 240, 240) 90%, cyan);
+}
+
+.infopage {
+    background-image: linear-gradient(to bottom, cyan, rgb(240, 240, 240) 10%, rgb(240, 240, 240));
+}
+
+.editpage {
+
+}
+
+.infopad {
+    margin-top: 4em;
+}
+
+.startinfo {
+    margin-top: 2em;
+    font-size: 1em;
+    text-align: center;
+    text-justify: auto;
+}
+
+.monocell {
+    font-family: LucidaConsole, 'Lucida Console', 'Courier New', monospace;
+    text-align: right;
+    padding-left: 0.5em;
+}
+
+.editbar {
+    vertical-align: bottom;
+    width: 100%;
+    background-color: cyan;
+    position: fixed;
+    z-index: 100;
+} /* Sticky bar http://stackoverflow.com/q/1216114/2825369 */
+
+.editbarcontent {
+    margin-left: 2em;
+    margin-right: 2em;
+    padding-top: 1em;
+}
+
+.editsplit {
+    height: 2em;
+    background-image: linear-gradient(to bottom, cyan, rgb(240, 240, 240));
+}
+
+.editbarfloatbuffer {
+    height: 10em;
+}
+
+.editarea {
+    background-color: rgb(240, 240, 240);
+}
+
+.editareacontent {
+    padding: 1em;
+}
+
+.edithud {
+    display: inline-block;
+}
+
+.planectl {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 0.5em;
+}
+
+.planeinfo {
+    display: inline-block;
+    margin-right: 2em;
+} /* Inline block http://stackoverflow.com/q/8969381/2825369 */
+
+.seltileimage {
+    background-color: rgb(220, 220, 220);
+    image-rendering: pixelated;
+}
+
+.seltileid {
+    font-family: LucidaConsole, 'Lucida Console', 'Courier New', monospace;
+    float: right;
+    position: absolute;
+    right: 0;
+    bottom: 0.05em;
+} /* Align at bottom http://stackoverflow.com/q/585945/2825369 */
+
+.planeinforow {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+}
