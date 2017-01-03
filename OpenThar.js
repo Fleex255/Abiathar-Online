@@ -8,6 +8,7 @@ var tileCache = new Array(3); // Cached tiles, carved from tilesets
 var tileCounts = new Array(3); // Number of tiles in each tileset
 var planeStates, selTiles; // Arrays for plane states (active, locked, hidden) and selected tiles
 var canvas; // The main canvas, cached as a variable to minimize DOM queries
+var scrollPositions = new Object; // Map of level/tileset IDs to scroll positions
 
 // Functions and event handlers and other exciting stuff
 function setupResponse(title, message) {
@@ -400,10 +401,11 @@ function editorReady() {
     canvas.addEventListener("mouseup", canvasMouseUpHandler, true);
     canvas.addEventListener("contextmenu", function(event) { event.preventDefault(); }, true); // Stop the right-click menu
     updateLevelsList();
-    moveToExtantLevel();
+    moveToExtantLevel(0);
     renderLevel();
 }
 function gotoLevel(id) {
+    scrollPositions[levelId] = { x: document.body.scrollLeft, y: document.body.scrollTop };
     levelId = id;
     var name;
     if (id >= 0) { // It's a real level
@@ -431,26 +433,32 @@ function gotoLevel(id) {
 function gotoLevelRerender(id) {
     gotoLevel(id);
     renderLevel();
+    var curLevelLastScroll = scrollPositions[id];
+    if (curLevelLastScroll) {
+        document.body.scrollLeft = curLevelLastScroll.x;
+        document.body.scrollTop = curLevelLastScroll.y;
+    } else {
+        document.body.scrollLeft = 0;
+        document.body.scrollTop = 0;
+    }
 }
-function moveToExtantLevel() {
-    for (var i = levelId; i < 100; i++) { // Try to move to the next level
+function moveToExtantLevel(startingFrom) {
+    for (var i = startingFrom; i < 100; i++) { // Try to move to the next level
         if (levels[i] !== undefined) {
-            gotoLevel(i);
+            gotoLevelRerender(i);
             return;
         }
     }
-    for (var i = levelId; i >= 0; i--) { // Try to move to a previous level
+    for (var i = startingFrom; i >= 0; i--) { // Try to move to a previous level
         if (levels[i] !== undefined) {
-            gotoLevel(i);
+            gotoLevelRerender(i);
             return;
         }
     }
-    gotoLevel(-4); // There are no levels
+    gotoLevelRerender(-4); // There are no levels
 }
 function gotoRealLevel() {
-    levelId = lastLevelId;
-    moveToExtantLevel();
-    renderLevel();
+    moveToExtantLevel(lastLevelId);
 }
 function showLevelsList() {
     canvas.style.display = "none";
@@ -641,8 +649,7 @@ function keyHandler(event) {
             if (levelId < 0) {
                 gotoRealLevel();
             } else {
-                gotoLevel(lastTileset);
-                renderLevel();
+                gotoLevelRerender(lastTileset);
             }
             break;
         case 27: // Esc
