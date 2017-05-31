@@ -3,7 +3,7 @@ var gamemaps, maphead, backtils, foretils; // Editor resources meta from Dropbox
 var unmaskTls, maskTls, nybbles; // Image instances
 var xhrGamemaps, xhrMaphead; // XMLHttpRequest instances for map resources
 var levels; // Array(100) of levels
-var lastLevelId, lastTileset, levelId; // Level ID if >= 0, or negative tileset ID, or -4 for blank
+var lastLevelId, lastTileset, levelId, tryShowLevelId; // Level ID if >= 0, or negative tileset ID, or -4 for blank
 var tileCache = new Array(3); // Cached tiles, carved from tilesets
 var tileCounts = new Array(3); // Number of tiles in each tileset
 var planeStates, selTiles; // Arrays for plane states (active, locked, hidden) and selected tiles
@@ -11,6 +11,22 @@ var canvas; // The main canvas, cached as a variable to minimize DOM queries
 var scrollPositions = new Object; // Map of level/tileset IDs to scroll positions
 
 // Functions and event handlers and other exciting stuff
+function startup() {
+    // Load resources from the query string, if supplied
+    function getParameterByName(name) {
+        var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+        return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+    } // https://stackoverflow.com/a/5158301/2825369
+    var gamemapsLink = getParameterByName('gamemaps');
+    var mapheadLink = getParameterByName('maphead');
+    var backtilLink = getParameterByName('backtli');
+    var foretilLink = getParameterByName('foretli');
+    if (gamemapsLink && mapheadLink && backtilLink && foretilLink) {
+        startLoading(gamemapsLink, mapheadLink, backtilLink, foretilLink);
+        var showLevel = getParameterByName('level');
+        if (showLevel) { tryShowLevelId = showLevel; }
+    }
+}
 function setupResponse(title, message) {
     var messageSpan = document.getElementById("msg");
     messageSpan.innerText = message;
@@ -116,30 +132,33 @@ function pickResource(divName, recvMeta) {
 }
 function confirmSetup() {
     if (gamemaps !== undefined && maphead !== undefined && backtils !== undefined && foretils !== undefined) {
-        document.getElementById("setupControl").style.display = "none";
-        setupResponse("OK!", "Loading resources, please wait...");
-        xhrGamemaps = new XMLHttpRequest();
-        xhrGamemaps.open("GET", gamemaps.link, true);
-        xhrGamemaps.responseType = "arraybuffer";
-        xhrGamemaps.onload = levelResReady;
-        xhrGamemaps.send(null);
-        xhrMaphead = new XMLHttpRequest();
-        xhrMaphead.open("GET", maphead.link, true);
-        xhrMaphead.responseType = "arraybuffer";
-        xhrMaphead.onload = levelResReady;
-        xhrMaphead.send(null);
-        unmaskTls = new Image;
-        unmaskTls.onload = editorReady;
-        unmaskTls.crossOrigin = "Anonymous"; // CORS
-        unmaskTls.src = backtils.link;
-        maskTls = new Image;
-        maskTls.onload = editorReady;
-        maskTls.crossOrigin = "Anonymous";
-        maskTls.src = foretils.link;
-        nybbles = new Image;
-        nybbles.onload = editorReady;
-        nybbles.src = "nybbles.png";
+        startLoading(gamemaps.link, maphead.link, backtils.link, foretils.link);
     }
+}
+function startLoading(gamemapsLink, mapheadLink, backtilLink, foretilLink) {
+    document.getElementById("setupControl").style.display = "none";
+    setupResponse("OK!", "Loading resources, please wait...");
+    xhrGamemaps = new XMLHttpRequest();
+    xhrGamemaps.open("GET", gamemapsLink, true);
+    xhrGamemaps.responseType = "arraybuffer";
+    xhrGamemaps.onload = levelResReady;
+    xhrGamemaps.send(null);
+    xhrMaphead = new XMLHttpRequest();
+    xhrMaphead.open("GET", mapheadLink, true);
+    xhrMaphead.responseType = "arraybuffer";
+    xhrMaphead.onload = levelResReady;
+    xhrMaphead.send(null);
+    unmaskTls = new Image;
+    unmaskTls.onload = editorReady;
+    unmaskTls.crossOrigin = "Anonymous"; // CORS
+    unmaskTls.src = backtilLink;
+    maskTls = new Image;
+    maskTls.onload = editorReady;
+    maskTls.crossOrigin = "Anonymous";
+    maskTls.src = foretilLink;
+    nybbles = new Image;
+    nybbles.onload = editorReady;
+    nybbles.src = "nybbles.png";
 }
 function readNumber(arr, offset, byteLen) { // Read a little-endian number from a byte array
     var res = 0;
@@ -384,7 +403,11 @@ function editorReady() {
     document.getElementById("setup").style.display = "none";
     document.getElementById("editControl").style.display = "block";
     document.body.className = ""; // Remove decorative gradients
-    levelId = 0;
+    if (!isNaN(tryShowLevelId) && (tryShowLevelId in levels)) {
+        levelId = parseInt(tryShowLevelId);
+    } else {
+        levelId = 0;
+    }
     lastTileset = -1;
     selTiles = [0, 0, 0];
     planeStates = [0, 0, 0];
@@ -401,7 +424,7 @@ function editorReady() {
     canvas.addEventListener("mouseup", canvasMouseUpHandler, true);
     canvas.addEventListener("contextmenu", function(event) { event.preventDefault(); }, true); // Stop the right-click menu
     updateLevelsList();
-    moveToExtantLevel(0);
+    moveToExtantLevel(levelId);
     renderLevel();
 }
 function gotoLevel(id) {
