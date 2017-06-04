@@ -573,9 +573,7 @@ function carveTile(plane, id) { // Carve a tile out of the tile sheets
             tempCtx.drawImage(nybbles, nybble * 8, 0, 8, 8, (i & 1 > 0) ? 8 : 0, (i > 1) ? 8 : 0, 8, 8);
         }
     }
-    var image = new Image();
-    image.src = tempCanvas.toDataURL();
-    return image;
+    return tempCanvas;
 }
 function getCachedTile(plane, id) { // Return a cached tile or carve it out
     if (tileCache[plane][id]) return tileCache[plane][id];
@@ -634,7 +632,7 @@ function setSelTile(plane, id) {
     selTiles[plane] = id;
     var hexTileId = id.toString(16);
     document.getElementById("tileId" + plane).innerText = ("0000" + hexTileId).substr(hexTileId.length, 4).toUpperCase();
-    document.getElementById("selTile" + plane).src = getCachedTile(plane, id).src;
+    document.getElementById("selTile" + plane).src = getCachedTile(plane, id).toDataURL();
 }
 function keyHandler(event) {
     var handled = true;
