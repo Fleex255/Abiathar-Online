@@ -38,45 +38,9 @@
     </div></div></div>
     <div id="editControl" style="display:none">
         <div class="editbar">
-            <div class="editbarcontent">
-                <div class="planeinfo">
-                    <a href="javascript:;" onclick="gotoLevelRerender(-1);">Background</a><br />
-                    <div class="planeinforow">
-                        <span id="planeState0">Editable</span><span id="tileId0" class="seltileid">0000</span>
-                    </div><br />
-                    <img id="selTile0" width="64" height="64" class="seltileimage" />
-                    <div class="planectl">
-                        <a href="javascript:;" onclick="setPlaneState(0, 0);">Edit</a><br />
-                        <a href="javascript:;" onclick="setPlaneState(0, 1);">View</a><br />
-                        <a href="javascript:;" onclick="setPlaneState(0, 2);">Hide</a>
-                    </div>
-                </div>
-                <div class="planeinfo">
-                    <a href="javascript:;" onclick="gotoLevelRerender(-2);">Foreground</a><br />
-                    <div class="planeinforow">
-                        <span id="planeState1">Editable</span><span id="tileId1" class="seltileid">0000</span>
-                    </div><br />
-                    <img id="selTile1" width="64" height="64" class="seltileimage" />
-                    <div class="planectl">
-                        <a href="javascript:;" onclick="setPlaneState(1, 0);">Edit</a><br />
-                        <a href="javascript:;" onclick="setPlaneState(1, 1);">View</a><br />
-                        <a href="javascript:;" onclick="setPlaneState(1, 2);">Hide</a>
-                    </div>
-                </div>
-                <div class="planeinfo">
-                    <a href="javascript:;" onclick="gotoLevelRerender(-3);">Infoplane</a><br />
-                    <div class="planeinforow">
-                        <span id="planeState2">Editable</span><span id="tileId2" class="seltileid">0000</span>
-                    </div><br />
-                    <img id="selTile2" width="64" height="64" class="seltileimage" />
-                    <div class="planectl">
-                        <a href="javascript:;" onclick="setPlaneState(2, 0);">Edit</a><br />
-                        <a href="javascript:;" onclick="setPlaneState(2, 1);">View</a><br />
-                        <a href="javascript:;" onclick="setPlaneState(2, 2);">Hide</a>
-                    </div>
-                </div>
-                <!-- TODO maybe: generate the tile bays with JavaScript rather than copy/paste -->
-                <div class="edithud">
+            <div class="editbarcontent" id="editbarcontent">
+                <!-- Plane controls will be inserted by script -->
+                <div class="edithud" id="edithud">
                     <span id="backToLevel" style="display:none"><a href="javascript:;" onclick="gotoRealLevel();">Back to level</a><br /></span>
                     Currently viewing: <span id="curLevel"></span> |
                     <a href="javascript:;" onclick="showLevelsList();">Switch Level</a>
@@ -90,9 +54,16 @@
             <div class="editsplit"></div>
         </div>
         <div class="editbarfloatbuffer"></div>
-        <div class="editarea"><div class="editareacontent">
+        <div class="editarea"><div class="editareacontent" id="editareacontent">
             <canvas id="mainView" style="cursor:default"><!-- The size of the main canvas will be set and updated by script --></canvas>
             <div id="levelList" style="display:none"><!-- This section will be populated with links to levels by script --></div>
+            <div id="idEntry" style="display:none">
+                Enter a tile ID for the <span id="idEntryPlane"></span> plane.<br />
+                <input type="text" id="newtileId" />
+                <label><input type="checkbox" id="checkNewIdIsHex" onclick="toggleIdEntryHex();" />Hexadecimal</label><br /><br />
+                <a href="javascript:;" onclick="completeTileIdEntry();" class="button" style="background-color:darkblue">OK</a>
+                <a href="javascript:;" onclick="onlyShow('mainView');" class="button" style="background-color:gray">CANCEL</a>
+            </div>
         </div></div>
     </div>
 </body>

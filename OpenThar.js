@@ -7,8 +7,11 @@ var lastLevelId, lastTileset, levelId, tryShowLevelId; // Level ID if >= 0, or n
 var tileCache = new Array(3); // Cached tiles, carved from tilesets
 var tileCounts = new Array(3); // Number of tiles in each tileset
 var planeStates, selTiles; // Arrays for plane states (active, locked, hidden) and selected tiles
+var selTileIdSpans, selTileImgs, planeStateSpans; // Arrays for control elements of each plane
 var canvas; // The main canvas, cached as a variable to minimize DOM queries
 var scrollPositions = new Object; // Map of level/tileset IDs to scroll positions
+var idEntryPlane; // Plane where tile ID is being entered
+var planeNames = ["Background", "Foreground", "Infoplane"]; // Display names of planes
 
 // Functions and event handlers and other exciting stuff
 function startup() {
@@ -409,11 +412,66 @@ function editorReady() {
         levelId = 0;
     }
     lastTileset = -1;
+    // Generate the plane control elements
+    selTileIdSpans = new Array(3);
+    selTileImgs = new Array(3);
+    planeStateSpans = new Array(3);
+    var editBarDiv = document.getElementById("editbarcontent");
+    var editHudDiv = document.getElementById("edithud");
+    function createStateSetterFunction(planeId, stateId) {
+        return function() { setPlaneState(planeId, stateId); }
+    }
+    function createTileIdEntryFunction(planeId) {
+        return function() { setupIdEntry(planeId); }
+    }
+    for (var i = 0; i < 3; i++) {
+        var planeDiv = document.createElement("div");
+        editBarDiv.insertBefore(planeDiv, editHudDiv);
+        function insertBr(parent) { parent.appendChild(document.createElement("br")); }
+        planeDiv.className = "planeinfo";
+        var tilesetLink = document.createElement("a");
+        planeDiv.appendChild(tilesetLink);
+        tilesetLink.href = "javascript:;";
+        tilesetLink.onclick = createLevelLinkClickHandler(-(i + 1));
+        tilesetLink.innerText = planeNames[i];
+        insertBr(planeDiv);
+        var planeStatusDiv = document.createElement("div");
+        planeDiv.appendChild(planeStatusDiv);
+        planeStatusDiv.className = "planeinforow";
+        var planeStateSpan = document.createElement("span");
+        planeStateSpans[i] = planeStateSpan;
+        planeStatusDiv.appendChild(planeStateSpan);
+        var selTileSpan = document.createElement("span");
+        selTileSpan.className = "seltileid";
+        selTileIdSpans[i] = selTileSpan;
+        planeStatusDiv.appendChild(selTileSpan);
+        insertBr(planeDiv);
+        var selImage = document.createElement("img");
+        selImage.width = 64;
+        selImage.height = 64;
+        selImage.className = "seltileimage";
+        selImage.onclick = createTileIdEntryFunction(i);
+        selTileImgs[i] = selImage;
+        planeDiv.appendChild(selImage);
+        var stateCtlDiv = document.createElement("div");
+        planeDiv.appendChild(stateCtlDiv);
+        stateCtlDiv.className = "planectl";
+        for (var state = 0; state < 3; state++) {
+            var ctlLink = document.createElement("a");
+            stateCtlDiv.appendChild(ctlLink);
+            ctlLink.href = "javascript:;";
+            ctlLink.onclick = createStateSetterFunction(i, state);
+            ctlLink.innerText = ["Edit", "View", "Hide"][state];
+            if (state < 2) insertBr(stateCtlDiv);
+        }
+    }
+    // Set up other data and even handlers
     selTiles = [0, 0, 0];
     planeStates = [0, 0, 0];
     for (var i = 0; i < 3; i++) { // Prepare tile caches
         tileCache[i] = new Object();
         setSelTile(i, 0);
+        setPlaneState(i, 0);
     }
     tileCounts[0] = (unmaskTls.height / ((unmaskTls.width == 288) ? 16 : 17)) * 18; // Detect number of background tiles
     tileCounts[1] = (maskTls.height / ((maskTls.width == 306) ? 17 : 16)) * 18; // Number of foreground tiles
@@ -484,20 +542,18 @@ function gotoRealLevel() {
     moveToExtantLevel(lastLevelId);
 }
 function showLevelsList() {
-    canvas.style.display = "none";
-    document.getElementById("levelList").style.display = "block";
+    onlyShow("levelsList");
+}
+function createLevelLinkClickHandler(id) {
+    // Closures and loops don't work well together
+    // JavaScript has no block scope, only function scope
+    return function () {
+        gotoLevelRerender(id);
+    }
 }
 function updateLevelsList() {
     var listDiv = document.getElementById("levelList");
     listDiv.innerHTML = "";
-    var createLinkClickHandler = function(id) {
-        // Closures and loops don't work well together
-        // JavaScript has no block scope, only function scope
-        return function() {
-            gotoLevel(id);
-            renderLevel();
-        }
-    }
     for (var i = 0; i < 100; i++) {
         if (levels[i] !== undefined) {
             var num = document.createElement("span");
@@ -505,7 +561,7 @@ function updateLevelsList() {
             listDiv.appendChild(num);
             var link = document.createElement("a");
             link.href = "javascript:;";
-            link.onclick = createLinkClickHandler(i);
+            link.onclick = createLevelLinkClickHandler(i);
             link.innerText = levels[i].name;
             listDiv.appendChild(link);
             listDiv.appendChild(document.createElement("br"));
@@ -582,8 +638,7 @@ function getCachedTile(plane, id) { // Return a cached tile or carve it out
     return tile;
 }
 function renderLevel() {
-    document.getElementById("levelList").style.display = "none";
-    canvas.style.display = "block";
+    onlyShow(canvas.id);
     var ctx = canvas.getContext("2d");
     if (levelId == -4) { // Nothingness (no level, no tileset)
         canvas.style.display = "none";
@@ -625,14 +680,14 @@ function updateTileImageInLevel(x, y) {
 function setPlaneState(plane, state) {
     var oldState = planeStates[plane];
     planeStates[plane] = state;
-    document.getElementById("planeState" + plane).innerText = ["Editable", "Visible", "Hidden"][state];
+    planeStateSpans[plane].innerText = ["Editable", "Visible", "Hidden"][state];
     if ((oldState == 2) != (state == 2)) renderLevel(); // Only re-render if the hidden-ness changed
 }
 function setSelTile(plane, id) {
     selTiles[plane] = id;
     var hexTileId = id.toString(16);
-    document.getElementById("tileId" + plane).innerText = ("0000" + hexTileId).substr(hexTileId.length, 4).toUpperCase();
-    document.getElementById("selTile" + plane).src = getCachedTile(plane, id).toDataURL();
+    selTileIdSpans[plane].innerText = ("0000" + hexTileId).substr(hexTileId.length, 4).toUpperCase();
+    selTileImgs[plane].src = getCachedTile(plane, id).toDataURL();
 }
 function keyHandler(event) {
     var handled = true;
@@ -647,25 +702,37 @@ function keyHandler(event) {
             setPlaneState(plane, (planeStates[plane] == 0) ? 1 : 0);
         }
     }
+    if (canvas.style.display !== "none") {
+        // Only control plane state if showing the level
+        switch (event.keyCode) {
+            case 49: // 1
+                togglePlaneState(0, false); break;
+            case 50: // 2
+                togglePlaneState(1, false); break;
+            case 51: // 3
+                togglePlaneState(2, false); break;
+            case 52: // 4
+                togglePlaneState(0, true); break;
+            case 53: // 5
+                togglePlaneState(1, true); break;
+            case 54: // 6
+                togglePlaneState(2, true); break;
+            case 55: // 7
+                gotoLevelRerender(-1); break;
+            case 56: // 8
+                gotoLevelRerender(-2); break;
+            case 57: // 9
+                gotoLevelRerender(-3); break;
+            default:
+                handled = false;
+        }
+        if (handled) {
+            event.preventDefault();
+            return;
+        }
+    }
+    handled = true;
     switch (event.keyCode) {
-        case 49: // 1
-            togglePlaneState(0, false); break;
-        case 50: // 2
-            togglePlaneState(1, false); break;
-        case 51: // 3
-            togglePlaneState(2, false); break;
-        case 52: // 4
-            togglePlaneState(0, true); break;
-        case 53: // 5
-            togglePlaneState(1, true); break;
-        case 54: // 6
-            togglePlaneState(2, true); break;
-        case 55: // 7
-            gotoLevelRerender(-1); break;
-        case 56: // 8
-            gotoLevelRerender(-2); break;
-        case 57: // 9
-            gotoLevelRerender(-3); break;
         case 32: // Space
             if (levelId < 0) {
                 gotoRealLevel();
@@ -743,4 +810,42 @@ function canvasMouseUpHandler(event) {
         return;
     }
     mouseHappened(event.clientX, event.clientY, buttonId);
+}
+function onlyShow(element) {
+    // Hide all editor elements except the one with the ID specified
+    var editAreaContentDiv = document.getElementById("editareacontent");
+    for (var i = 0; i < editAreaContentDiv.children.length; i++) {
+        var child = editAreaContentDiv.children[i];
+        child.style.display = (child.id === element ? "block" : "none");
+    }
+}
+function setupIdEntry(plane) {
+    document.getElementById("idEntryPlane").innerText = planeNames[plane];
+    idEntryPlane = plane;
+    updateTileIdEntryBox(selTiles[plane]);
+    onlyShow("idEntry");
+    document.getElementById("newtileId").focus();
+}
+function isTileIdEntryHex() {
+   return document.getElementById("checkNewIdIsHex").checked;
+}
+function updateTileIdEntryBox(tileId) {
+    document.getElementById("newtileId").value = tileId.toString(isTileIdEntryHex() ? 16 : 10);
+}
+function getEnteredTileIdAssumingBase(isHex) {
+    return parseInt(document.getElementById("newtileId").value, isHex ? 16 : 10);
+}
+function getEnteredTileId() {
+    return getEnteredTileIdAssumingBase(isTileIdEntryHex());
+}
+function toggleIdEntryHex() {
+    updateTileIdEntryBox(getEnteredTileIdAssumingBase(!isTileIdEntryHex()));
+    document.getElementById("newtileId").pattern = (isTileIdEntryHex() ? "[a-fA-F\d]*" : "\d*");
+}
+function completeTileIdEntry() {
+    var tileId = getEnteredTileId();
+    if (tileId >= 0 && tileId < 0x10000) {
+        setSelTile(idEntryPlane, tileId);
+        onlyShow(canvas.id);
+    }
 }
