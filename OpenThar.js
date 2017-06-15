@@ -12,6 +12,7 @@ var canvas; // The main canvas, cached as a variable to minimize DOM queries
 var scrollPositions = new Object; // Map of level/tileset IDs to scroll positions
 var idEntryPlane; // Plane where tile ID is being entered
 var planeNames = ["Background", "Foreground", "Infoplane"]; // Display names of planes
+var showLinks = false;
 
 // Functions and event handlers and other exciting stuff
 function startup() {
@@ -510,6 +511,7 @@ function gotoLevel(id) {
     }
     document.getElementById("curLevel").innerText = name;
     document.getElementById("backToLevel").style.display = (id >= 0 || id == -4) ? "none" : "inline";
+    document.getElementById("showLinks").style.display = (id >= 0) ? "inline" : "none";
 }
 function gotoLevelRerender(id) {
     gotoLevel(id);
@@ -652,8 +654,27 @@ function renderLevel() {
             for (var y = 0; y < level.height; y++) {
                 for (var x = 0; x < level.width; x++) {
                     var tileId = level.planes[plane][x][y];
+                    if (plane == 2 && showLinks && infoplaneLink(tileId)) continue;
                     if (plane > 0 && tileId == 0) continue; // Never render foreground tile 0
                     ctx.drawImage(getCachedTile(plane, tileId), x * 16, y * 16);
+                }
+            }
+        }
+        // Render links
+        if (showLinks) {
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#FFA500";
+            ctx.fillStyle = "#FFA500";
+            for (var y = 0; y < level.height; y++) {
+                for (var x = 0; x < level.width; x++) {
+                    var linkTarget = infoplaneLink(level.planes[2][x][y]);
+                    if (!linkTarget) continue;
+                    ctx.strokeRect((x * 16) + 2, (y * 16) + 2, 12, 12);
+                    ctx.beginPath();
+                    ctx.moveTo((x * 16) + 8, (y * 16) + 8);
+                    ctx.lineTo((linkTarget.x * 16) + 8, (linkTarget.y * 16) + 8);
+                    ctx.stroke();
+                    ctx.fillRect((linkTarget.x * 16) + 4, (linkTarget.y * 16) + 4, 8, 8);
                 }
             }
         }
@@ -670,6 +691,11 @@ function renderLevel() {
 function updateTileImageInLevel(x, y) {
     var ctx = canvas.getContext("2d");
     ctx.clearRect(x * 16, y * 16, 16, 16); // In case background is hidden
+    if (infoplaneLink(levels[levelId].planes[2][x][y])) {
+        // Don't overwrite the links
+        renderLevel();
+        return;
+    }
     for (var i = 0; i < 3; i++) {
         if (planeStates[i] == 2) continue;
         var tileId = levels[levelId].planes[i][x][y];
@@ -723,6 +749,11 @@ function keyHandler(event) {
                 gotoLevelRerender(-2); break;
             case 57: // 9
                 gotoLevelRerender(-3); break;
+            case 76: // L
+                var linksCheckbox = document.getElementById("checkShowLinks");
+                linksCheckbox.checked = !linksCheckbox.checked;
+                showLinks = !showLinks;
+                renderLevel()
             default:
                 handled = false;
         }
@@ -774,7 +805,11 @@ function mouseHappened(clientX, clientY, button) {
             for (var i = 0; i < 3; i++) {
                 if (planeStates[i] == 0) levels[levelId].planes[i][x][y] = selTiles[i];
             }
-            updateTileImageInLevel(x, y);
+            if (planeStates[2] == 0 && showLinks) {
+                renderLevel(); // Links can go over everything, so the whole level has to be redrawn
+            } else {
+                updateTileImageInLevel(x, y);
+            }
         } else if (button == 2) {
             for (var i = 0; i < 3; i++) {
                 if (planeStates[i] == 0) setSelTile(i, levels[levelId].planes[i][x][y]);
@@ -848,4 +883,17 @@ function completeTileIdEntry() {
         setSelTile(idEntryPlane, tileId);
         onlyShow(canvas.id);
     }
+}
+function infoplaneLink(tile) {
+    if (levelId < 0) return null;
+    var curLevel = levels[levelId];
+    var x = Math.floor(tile / 256);
+    var y = tile % 256;
+    if (x >= curLevel.width || y >= curLevel.height) return null;
+    if (x == 0) return null; // Almost certainly a sprite
+    return {x: x, y: y};
+}
+function toggleLinksMode() {
+    showLinks = document.getElementById("checkShowLinks").checked;
+    renderLevel();
 }
