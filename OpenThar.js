@@ -691,11 +691,6 @@ function renderLevel() {
 function updateTileImageInLevel(x, y) {
     var ctx = canvas.getContext("2d");
     ctx.clearRect(x * 16, y * 16, 16, 16); // In case background is hidden
-    if (infoplaneLink(levels[levelId].planes[2][x][y])) {
-        // Don't overwrite the links
-        renderLevel();
-        return;
-    }
     for (var i = 0; i < 3; i++) {
         if (planeStates[i] == 2) continue;
         var tileId = levels[levelId].planes[i][x][y];
@@ -805,7 +800,7 @@ function mouseHappened(clientX, clientY, button) {
             for (var i = 0; i < 3; i++) {
                 if (planeStates[i] == 0) levels[levelId].planes[i][x][y] = selTiles[i];
             }
-            if (planeStates[2] == 0 && showLinks) {
+            if (showLinks) {
                 renderLevel(); // Links can go over everything, so the whole level has to be redrawn
             } else {
                 updateTileImageInLevel(x, y);
