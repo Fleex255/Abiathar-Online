@@ -544,7 +544,7 @@ function gotoRealLevel() {
     moveToExtantLevel(lastLevelId);
 }
 function showLevelsList() {
-    onlyShow("levelsList");
+    onlyShow("levelList");
 }
 function createLevelLinkClickHandler(id) {
     // Closures and loops don't work well together
